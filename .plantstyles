@@ -3,7 +3,6 @@
 
 skinparam defaultFontName  Helvetica
 skinparam sequenceMessageAlign center
-skinparam monochrome true
 
 skinparam activity {
     ArrowColor Black

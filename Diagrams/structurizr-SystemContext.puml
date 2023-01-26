@@ -1,0 +1,15 @@
+@startuml
+title Software System - System Context
+
+top to bottom direction
+
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4.puml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+Person(User, "User", "A user of my software system.", $tags="")
+System(SoftwareSystem, "Software System", "My software system.", $tags="")
+
+Rel_D(User, SoftwareSystem, "Uses", $tags="")
+
+SHOW_LEGEND()
+@enduml

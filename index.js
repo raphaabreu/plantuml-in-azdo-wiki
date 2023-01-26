@@ -1,9 +1,10 @@
-const chokidar = require('chokidar');
-const plantUml = require('node-plantuml');
-const fs = require('fs');
-const path = require('path');
+const chokidar = require("chokidar");
+const plantUml = require("node-plantuml-latest");
+const fs = require("fs");
+const path = require("path");
+const { exec } = require("node:child_process");
 
-const style = path.resolve(__dirname, '.plantstyles');
+const style = path.resolve(__dirname, ".plantstyles");
 
 /**
  * Logs a dated message to the console.
@@ -11,7 +12,15 @@ const style = path.resolve(__dirname, '.plantstyles');
  */
 function log(message) {
   const now = new Date();
-  console.log(`[${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}] ${message}`);
+  console.log(
+    `[${now.getHours().toString().padStart(2, "0")}:${now
+      .getMinutes()
+      .toString()
+      .padStart(2, "0")}:${now
+      .getSeconds()
+      .toString()
+      .padStart(2, "0")}] ${message}`
+  );
 }
 
 /**
@@ -28,6 +37,30 @@ function generateDiagram(pathToFile) {
   } catch (error) {
     console.error(error);
   }
+}
+
+/**
+ * Generates/regenerates a diagram based on a PlantUML file.
+ * @param {string} pathToFile - The absolute file path to the PlantUML file.
+ */
+function generatePlantUml(pathToFile) {
+  cleanupDiagram(pathToFile);
+  const diagramPath = calculateDiagramPath(pathToFile);
+  log("Generating " + diagramPath);
+  exec(
+    `structurizr-cli export -w  ${pathToFile} -f plantuml/c4plantuml`, //plantuml/structurizr`,
+    (error, stdout, stderr) => {
+      if (error) {
+        console.error(`error: ${error.message}`);
+        return;
+      }
+      if (stderr) {
+        console.error(`stderr: ${stderr}`);
+        return;
+      }
+      console.log(`stdout: ${stdout}`);
+    }
+  );
 }
 
 /**
@@ -58,19 +91,41 @@ function calculateDiagramPath(pathToFile) {
 }
 
 const watcher = chokidar
-  .watch('**/*.puml', {
+  .watch("**/*.puml", {
     persistent: true,
-    ignored: [/(^|[/\\])\../, 'node_modules'],
+    ignored: [/(^|[/\\])\../, "node_modules"],
     cwd: __dirname,
-    ignoreInitial: true
+    ignoreInitial: true,
   })
-  .on('all', (event, path) => {
+  .on("all", (event, path) => {
     switch (event) {
-      case 'add':
-      case 'change':
+      case "add":
+      case "change":
         generateDiagram(path);
         break;
-      case 'unlink':
+      case "unlink":
+        cleanupDiagram(path);
+        break;
+      default:
+        log(`Ignoring event ${event} on ${path}`);
+        break;
+    }
+  });
+
+const watcher2 = chokidar
+  .watch("**/*.dsl", {
+    persistent: true,
+    ignored: [/(^|[/\\])\../, "node_modules"],
+    cwd: __dirname,
+    ignoreInitial: true,
+  })
+  .on("all", (event, path) => {
+    switch (event) {
+      case "add":
+      case "change":
+        generatePlantUml(path);
+        break;
+      case "unlink":
         cleanupDiagram(path);
         break;
       default:
