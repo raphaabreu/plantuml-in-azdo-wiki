@@ -48,7 +48,7 @@ function generatePlantUml(pathToFile) {
   const diagramPath = calculateDiagramPath(pathToFile);
   log("Generating " + diagramPath);
   exec(
-    `structurizr-cli export -w  ${pathToFile} -f plantuml/c4plantuml`, //plantuml/structurizr`,
+    `structurizr export -w  ${pathToFile} -f plantuml/c4plantuml`,
     (error, stdout, stderr) => {
       if (error) {
         console.error(`error: ${error.message}`);
